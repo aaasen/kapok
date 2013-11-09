@@ -1,5 +1,10 @@
 package graph
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Graph struct {
 	Nodes map[*Node]map[*Node]bool
 	Names map[string]*Node
@@ -42,4 +47,22 @@ func (self *Graph) Adjacent(x *Node, y *Node) bool {
 	_, exists := self.Nodes[x][y]
 
 	return exists
+}
+
+func (self *Graph) String() string {
+	str := ""
+
+	for node, neighbors := range self.Nodes {
+		str += fmt.Sprintf("%s -> (", node.String())
+
+		n := make([]string, 0)
+		for neighbor, _ := range neighbors {
+			n = append(n, neighbor.String())
+		}
+
+		str += strings.Join(n, ", ")
+		str += ")\n"
+	}
+
+	return str
 }
