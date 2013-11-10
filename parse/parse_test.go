@@ -3,6 +3,7 @@ package parse
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 func TestParse(t *testing.T) {
@@ -12,7 +13,13 @@ func TestParse(t *testing.T) {
 		t.Error(err)
 	}
 
+	chunks := make(chan []byte)
 	pages := make(chan []byte)
 
-	chunk(file, pages)
+	go getChunks(file, chunks)
+	go getPages(chunks, pages)
+	go getXML(pages)
+
+	time.Sleep(time.Minute)
+
 }
