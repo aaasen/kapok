@@ -80,44 +80,6 @@ func BenchmarkAdd(b *testing.B) {
 	}
 }
 
-func BenchmarkAddArc(b *testing.B) {
-	g := NewGraph()
-
-	for i := 0; i < b.N; i++ {
-		g.Add(NewNode(string(i)))
-	}
-
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		for j := 0; i < b.N; i++ {
-			g.AddArc(g.Get(string(i)), g.Get(string(j)))
-		}
-	}
-}
-
-func BenchmarkRemoveArc(b *testing.B) {
-	g := NewGraph()
-
-	for i := 0; i < b.N; i++ {
-		g.Add(NewNode(string(i)))
-	}
-
-	for i := 0; i < b.N; i++ {
-		for j := 0; i < b.N; i++ {
-			g.AddArc(g.Get(string(i)), g.Get(string(j)))
-		}
-	}
-
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		for j := 0; i < b.N; i++ {
-			g.RemoveArc(g.Get(string(i)), g.Get(string(j)))
-		}
-	}
-}
-
 func BenchmarkRemove(b *testing.B) {
 	g := NewGraph()
 
@@ -130,4 +92,8 @@ func BenchmarkRemove(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		g.Remove(g.Get(string(i)))
 	}
+}
+
+func BenchmarkAdjacent(b *testing.B) {
+
 }
