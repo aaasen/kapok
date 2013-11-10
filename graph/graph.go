@@ -30,7 +30,7 @@ func (self *Graph) Remove(node *Node) {
 	delete(self.Nodes, node)
 	delete(self.Names, node.Name)
 
-	for node, neighbors := range self.Nodes {
+	for _, neighbors := range self.Nodes {
 		delete(neighbors, node)
 	}
 }
