@@ -21,6 +21,17 @@ func (self *Graph) Get(name string) *Node {
 	return self.Names[name]
 }
 
+func (self *Graph) SafeGet(name string) *Node {
+	node := self.Names[name]
+
+	if node == nil {
+		node = NewNode(name)
+		self.Add(node)
+	}
+
+	return node
+}
+
 func (self *Graph) Add(node *Node) {
 	self.Nodes[node] = make(map[*Node]bool, 0)
 	self.Names[node.Name] = node
