@@ -20,17 +20,32 @@ func TestKapok(t *testing.T) {
 	go parse.Parse(file, pages)
 
 	graph := graph.NewGraph()
+	numPages := 0
+	maxPages := 10
 
 	for {
 		select {
 		case page := <-pages:
+			log.Println(numPages)
+
 			origin := graph.SafeGet(page.Title)
 
 			for _, dest := range page.Links {
 				graph.AddArc(origin, graph.SafeGet(dest))
 			}
 
-			log.Println(graph.String())
+			numPages++
+
+			if numPages >= maxPages {
+				file, err := os.Create("/home/aasen/dev/data/wiki-graph.gob")
+
+				if err != nil {
+					log.Fatal("error opening graph file: ", err)
+				}
+
+				graph.Export(file)
+				return
+			}
 		}
 	}
 }

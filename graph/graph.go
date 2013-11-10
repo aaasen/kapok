@@ -1,7 +1,10 @@
 package graph
 
 import (
+	"encoding/gob"
 	"fmt"
+	"io"
+	"log"
 	"strings"
 )
 
@@ -76,4 +79,27 @@ func (self *Graph) String() string {
 	}
 
 	return str
+}
+
+func (self *Graph) Export(writer io.Writer) {
+	encoder := gob.NewEncoder(writer)
+
+	err := encoder.Encode(self)
+
+	if err != nil {
+		log.Fatal("error exporting graph: ", err)
+	}
+}
+
+func Import(reader io.Reader) *Graph {
+	decoder := gob.NewDecoder(reader)
+
+	var graph Graph
+	err := decoder.Decode(&graph)
+
+	if err != nil {
+		log.Fatal("error importing graph: ", err)
+	}
+
+	return &graph
 }
