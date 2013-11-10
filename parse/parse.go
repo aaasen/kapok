@@ -2,16 +2,15 @@ package parse
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"log"
 )
 
-func Parse(reader io.Reader) {
+func chunk(reader io.Reader, chunks chan<- []byte) {
 	scanner := bufio.NewScanner(reader)
 
 	for scanner.Scan() {
-		fmt.Println(scanner.Text())
+		chunks <- scanner.Bytes()
 	}
 
 	if err := scanner.Err(); err != nil {

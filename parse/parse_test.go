@@ -12,5 +12,7 @@ func TestParse(t *testing.T) {
 		t.Error(err)
 	}
 
-	Parse(file)
+	pages := make(chan []byte)
+
+	chunk(file, pages)
 }
