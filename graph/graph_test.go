@@ -34,6 +34,29 @@ func TestRemove(t *testing.T) {
 	}
 }
 
+func BenchmarkAdd(b *testing.B) {
+	g := NewGraph()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		g.Add(NewNode(string(i)))
+	}
+}
+
+func BenchmarkRemove(b *testing.B) {
+	g := NewGraph()
+
+	for i := 0; i < b.N; i++ {
+		g.Add(NewNode(string(i)))
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		g.Remove(g.Get(string(i)))
+	}
+}
+
 func getTestGraph() *Graph {
 	g := NewGraph()
 
