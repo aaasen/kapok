@@ -10,8 +10,8 @@ import (
 	svg "github.com/ajstarks/svgo"
 )
 
-const width = 1024
-const height = 1024
+const width = 2048
+const height = width
 
 type positions struct {
 	Positions map[string]*Vector
@@ -55,8 +55,7 @@ func Visualise(g *graph.Graph, writer io.Writer) *svg.SVG {
 	canvas := svg.New(writer)
 	canvas.Start(width, height)
 
-	// positionsA := newPositions(g)
-
+	positions := make(map[string]*Vector)
 	levels := make(map[int][]*graph.Node)
 
 	for node, _ := range g.Nodes {
@@ -81,37 +80,46 @@ func Visualise(g *graph.Graph, writer io.Writer) *svg.SVG {
 				rotationCorrection = math.Pi
 			}
 
-			nodePos := &Vector{
+			positions[node.Name] = &Vector{
 				X:   int((width / 2) + math.Cos(angle)*rad),
 				Y:   int((height / 2) + math.Sin(angle)*rad),
 				Rot: (angle + rotationCorrection) * (180 / math.Pi),
 				Rad: rad,
 			}
 
-			canvas.Circle(
-				nodePos.X,
-				nodePos.Y,
-				1,
-				"fill:black")
-
-			// for neighbor, _ := range g.Nodes[node] {
-			// 	neighborPos := positionsA.SafeGet(neighbor)
-
-			// 	canvas.Line(
-			// 		nodePos.X, nodePos.Y,
-			// 		neighborPos.X, neighborPos.Y,
-			// 		"stroke:rgba(0, 0, 0, 0.2);stroke-width:0.5")
-			// }
-
-			canvas.Text(
-				0,
-				0,
-				node.Name,
-				`style="text-anchor:middle;font-size:12px;fill:#5bb4c0;"`,
-				fmt.Sprintf(`transform="rotate(%v, %v, %v) translate(%v, %v)"`, nodePos.Rot, nodePos.X, nodePos.Y, nodePos.X, nodePos.Y))
-
 			angle += (math.Pi * 2) / float64(len(nodes))
 		}
+	}
+
+	for node, _ := range g.Nodes {
+		for neighbor, _ := range g.Nodes[node] {
+			vector := positions[node.Name]
+			neighborVec := positions[neighbor.Name]
+
+			canvas.Line(
+				vector.X, vector.Y,
+				neighborVec.X, neighborVec.Y,
+				"stroke:#e74c3c;stroke-width:0.5")
+		}
+	}
+
+	for node, vector := range positions {
+		canvas.Circle(
+			vector.X,
+			vector.Y,
+			1,
+			"fill:rgba(0, 0, 0, 0.2)")
+
+		canvas.Text(
+			0,
+			0,
+			node,
+			fmt.Sprintf(`style="text-anchor:middle;font-size:%vpx;fill:rbga(0, 0, 0, 1);"`,
+				int(64.0/(vector.Rad))+12),
+			fmt.Sprintf(`transform="rotate(%v, %v, %v) translate(%v, %v)"`,
+				vector.Rot,
+				vector.X, vector.Y,
+				vector.X, vector.Y))
 	}
 
 	canvas.End()
