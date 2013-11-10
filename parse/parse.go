@@ -3,7 +3,6 @@ package parse
 import (
 	"bufio"
 	"encoding/xml"
-	"fmt"
 	"io"
 	"log"
 	"regexp"
@@ -12,6 +11,17 @@ import (
 var pageStartRegex = regexp.MustCompile(".*<page>.*")
 var pageEndRegex = regexp.MustCompile(".*</page>.*")
 var linkRegex = regexp.MustCompile("\\[\\[([^|]+?)\\]\\]")
+
+func Parse(reader io.Reader, pages chan<- *Page) {
+	chunks := make(chan []byte)
+	rawPages := make(chan []byte)
+	somePages := make(chan *Page)
+
+	go getChunks(reader, chunks)
+	go getRawPages(chunks, rawPages)
+	go getPages(rawPages, somePages)
+	go getLinks(somePages, pages)
+}
 
 func getChunks(reader io.Reader, chunks chan<- []byte) {
 	scanner := bufio.NewScanner(reader)
@@ -80,15 +90,6 @@ func getLinks(pages <-chan *Page, linkedPages chan<- *Page) {
 			}
 
 			linkedPages <- page
-		}
-	}
-}
-
-func printPages(pages <-chan *Page) {
-	for {
-		select {
-		case page := <-pages:
-			fmt.Sprint(page)
 		}
 	}
 }

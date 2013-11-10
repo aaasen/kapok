@@ -1,9 +1,9 @@
 package parse
 
 import (
+	"log"
 	"os"
 	"testing"
-	"time"
 )
 
 func TestParse(t *testing.T) {
@@ -13,17 +13,17 @@ func TestParse(t *testing.T) {
 		t.Error(err)
 	}
 
-	chunks := make(chan []byte)
-	rawPages := make(chan []byte)
 	pages := make(chan *Page)
-	linkedPages := make(chan *Page)
 
-	go getChunks(file, chunks)
-	go getRawPages(chunks, rawPages)
-	go getPages(rawPages, pages)
-	go getLinks(pages, linkedPages)
-	go printPages(linkedPages)
+	go Parse(file, pages)
 
-	time.Sleep(time.Minute)
+	i := 1
 
+	for {
+		select {
+		case <-pages:
+			log.Println(i)
+			i++
+		}
+	}
 }
