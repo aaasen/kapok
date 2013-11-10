@@ -1,5 +1,6 @@
 package visual
 
 type Vector struct {
-	X, Y, R int
+	X, Y     int
+	Rad, Rot float64
 }
