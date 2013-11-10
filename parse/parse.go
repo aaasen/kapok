@@ -2,6 +2,7 @@ package parse
 
 import (
 	"bufio"
+	"encoding/xml"
 	"io"
 	"log"
 	"regexp"
@@ -22,8 +23,8 @@ func getChunks(reader io.Reader, chunks chan<- []byte) {
 	}
 }
 
-func getPages(chunks <-chan []byte, pages chan<- []byte) {
-	page := make([]byte, 0)
+func getRawPages(chunks <-chan []byte, pages chan<- []byte) {
+	page := []byte("<page>")
 	inPage := false
 
 	for {
@@ -33,8 +34,9 @@ func getPages(chunks <-chan []byte, pages chan<- []byte) {
 				inPage = true
 			} else if pageEndRegex.Match(chunk) {
 				if inPage {
+					page = append(page, []byte("</page>")...)
 					pages <- page
-					page = make([]byte, 0)
+					page = []byte("<page>")
 				}
 
 				inPage = false
@@ -47,11 +49,30 @@ func getPages(chunks <-chan []byte, pages chan<- []byte) {
 	}
 }
 
-func getXML(pages <-chan []byte) {
+func getPages(rawPages <-chan []byte, pages chan<- *page) {
+	for {
+		select {
+		case rawPage := <-rawPages:
+			pageStruct := &page{}
+
+			err := xml.Unmarshal(rawPage, pageStruct)
+
+			if err != nil {
+				log.Println(string(rawPage))
+				log.Println(err)
+			} else {
+				pages <- pageStruct
+				log.Println(pageStruct)
+			}
+		}
+	}
+}
+
+func printPages(pages <-chan *page) {
 	for {
 		select {
 		case page := <-pages:
-			log.Println(string(page))
+			log.Println(page)
 		}
 	}
 }
