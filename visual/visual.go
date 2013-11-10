@@ -1,6 +1,7 @@
 package visual
 
 import (
+	"fmt"
 	"io"
 	"math"
 	"math/rand"
@@ -31,10 +32,18 @@ func (self *positions) SafeGet(node *graph.Node) *Vector {
 		angle := rand.Float64() * math.Pi * 2
 		r := (width / 2.5) / float64(len(self.Graph.Nodes[node])+1)
 
+		rotationCorrection := 0.0
+
+		if angle > math.Pi/2.0 && angle < 3*(math.Pi/2) {
+			rotationCorrection = math.Pi
+		}
+
 		vector = &Vector{
 			X: int((width / 2) + math.Cos(angle)*r),
 			Y: int((height / 2) + math.Sin(angle)*r),
+			R: int((angle + rotationCorrection) * (180 / math.Pi)),
 		}
+
 		self.Positions[node.Name] = vector
 	}
 
@@ -66,10 +75,11 @@ func Visualise(g *graph.Graph, writer io.Writer) *svg.SVG {
 		}
 
 		canvas.Text(
-			nodePos.X,
-			nodePos.Y,
+			0,
+			0,
 			node.Name,
-			"text-anchor:middle;font-size:12px;fill:#5bb4c0;")
+			`style="text-anchor:middle;font-size:12px;fill:#5bb4c0;"`,
+			fmt.Sprintf(`transform="rotate(%v, %v, %v) translate(%v, %v)"`, nodePos.R, nodePos.X, nodePos.Y, nodePos.X, nodePos.Y))
 
 	}
 
