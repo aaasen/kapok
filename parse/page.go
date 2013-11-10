@@ -1,10 +1,11 @@
 package parse
 
-type page struct {
+type Page struct {
 	Title    string    `xml:"title"`
-	Revision *revision `xml:"revision"`
+	Revision *Revision `xml:"revision"`
+	Links    []string
 }
 
-type revision struct {
+type Revision struct {
 	Text string `xml:"text"`
 }

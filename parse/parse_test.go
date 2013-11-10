@@ -15,12 +15,14 @@ func TestParse(t *testing.T) {
 
 	chunks := make(chan []byte)
 	rawPages := make(chan []byte)
-	pages := make(chan *page)
+	pages := make(chan *Page)
+	linkedPages := make(chan *Page)
 
 	go getChunks(file, chunks)
 	go getRawPages(chunks, rawPages)
 	go getPages(rawPages, pages)
-	go printPages(pages)
+	go getLinks(pages, linkedPages)
+	go printPages(linkedPages)
 
 	time.Sleep(time.Minute)
 

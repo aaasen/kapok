@@ -3,6 +3,7 @@ package parse
 import (
 	"bufio"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"log"
 	"regexp"
@@ -10,6 +11,7 @@ import (
 
 var pageStartRegex = regexp.MustCompile(".*<page>.*")
 var pageEndRegex = regexp.MustCompile(".*</page>.*")
+var linkRegex = regexp.MustCompile("\\[\\[([^|]+?)\\]\\]")
 
 func getChunks(reader io.Reader, chunks chan<- []byte) {
 	scanner := bufio.NewScanner(reader)
@@ -49,11 +51,11 @@ func getRawPages(chunks <-chan []byte, pages chan<- []byte) {
 	}
 }
 
-func getPages(rawPages <-chan []byte, pages chan<- *page) {
+func getPages(rawPages <-chan []byte, pages chan<- *Page) {
 	for {
 		select {
 		case rawPage := <-rawPages:
-			pageStruct := &page{}
+			pageStruct := &Page{}
 
 			err := xml.Unmarshal(rawPage, pageStruct)
 
@@ -62,17 +64,31 @@ func getPages(rawPages <-chan []byte, pages chan<- *page) {
 				log.Println(err)
 			} else {
 				pages <- pageStruct
-				log.Println(pageStruct)
 			}
 		}
 	}
 }
 
-func printPages(pages <-chan *page) {
+func getLinks(pages <-chan *Page, linkedPages chan<- *Page) {
 	for {
 		select {
 		case page := <-pages:
-			log.Println(page)
+			links := linkRegex.FindAllStringSubmatch(page.Revision.Text, -1)
+
+			for _, link := range links {
+				page.Links = append(page.Links, link[1])
+			}
+
+			linkedPages <- page
+		}
+	}
+}
+
+func printPages(pages <-chan *Page) {
+	for {
+		select {
+		case page := <-pages:
+			fmt.Sprint(page)
 		}
 	}
 }
