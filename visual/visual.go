@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"math/rand"
 
 	"github.com/aaasen/kapok/graph"
 	svg "github.com/ajstarks/svgo"
@@ -12,44 +11,6 @@ import (
 
 const width = 2048
 const height = width
-
-type positions struct {
-	Positions map[string]*Vector
-	Graph     *graph.Graph
-}
-
-func newPositions(graph *graph.Graph) *positions {
-	return &positions{
-		Positions: make(map[string]*Vector),
-		Graph:     graph,
-	}
-}
-
-func (self *positions) SafeGet(node *graph.Node) *Vector {
-	vector := self.Positions[node.Name]
-
-	if vector == nil {
-		angle := rand.Float64() * math.Pi * 2
-		r := (width / 2.5) / float64(len(self.Graph.Nodes[node])+1)
-
-		rotationCorrection := 0.0
-
-		if angle > math.Pi/2.0 && angle < 3*(math.Pi/2) {
-			rotationCorrection = math.Pi
-		}
-
-		vector = &Vector{
-			X:   int((width / 2) + math.Cos(angle)*r),
-			Y:   int((height / 2) + math.Sin(angle)*r),
-			Rot: (angle + rotationCorrection) * (180 / math.Pi),
-			Rad: r,
-		}
-
-		self.Positions[node.Name] = vector
-	}
-
-	return vector
-}
 
 func Visualise(g *graph.Graph, writer io.Writer) *svg.SVG {
 	canvas := svg.New(writer)
