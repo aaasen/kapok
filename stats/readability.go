@@ -39,12 +39,18 @@ func SyllableCount(word string) int {
 	return len(vowelRegex.FindAllString(word, -1))
 }
 
-func ReadingEase(text string) float64 {
-	return 0.0
-}
+func FleschKincaidEase(text string) float64 {
+	words := Words(text)
+	numWords := float64(len(words))
+	numSentences := float64(len(Sentences(text)))
+	numSyllables := 0
 
-func ReadingGradeLevel(text string) float64 {
-	return 0.0
+	for _, word := range words {
+		numSyllables += SyllableCount(word)
+	}
+
+	return 206.835 - 1.015*(numWords/numSentences) - 84.6*(float64(numSyllables)/numWords)
+
 }
 
 func cleanWord(word string) string {

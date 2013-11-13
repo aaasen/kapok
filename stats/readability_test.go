@@ -45,18 +45,9 @@ func TestSyllables(t *testing.T) {
 
 var testText = `The Flesch/Flesch–Kincaid readability tests are readability tests designed to indicate comprehension difficulty when reading a passage of contemporary academic English. There are two tests, the Flesch Reading Ease, and the Flesch–Kincaid Grade Level. Although they use the same core measures (word length and sentence length), they have different weighting factors. The results of the two tests correlate approximately inversely: a text with a comparatively high score on the Reading Ease test should have a lower score on the Grade Level test. Rudolf Flesch devised both systems while J. Peter Kincaid developed the latter for the United States Navy. Such readability tests suggest that many Wikipedia articles may be "too sophisticated" for their readers.`
 
-func TestReadingEase(t *testing.T) {
+func TestFleschKincaidEase(t *testing.T) {
 	expected := 46.3
-	result := ReadingEase(testText)
-
-	if math.Abs(expected-result) >= 0.1 {
-		t.Errorf("expected %v, got %v\n", expected, result)
-	}
-}
-
-func TestReadingGradeLevel(t *testing.T) {
-	expected := 10.8
-	result := ReadingGradeLevel(testText)
+	result := FleschKincaidEase(testText)
 
 	if math.Abs(expected-result) >= 0.1 {
 		t.Errorf("expected %v, got %v\n", expected, result)
