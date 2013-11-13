@@ -1,32 +1,39 @@
 package stats
 
 import (
+	"log"
 	"math"
 	"testing"
 )
 
 func TestWordCount(t *testing.T) {
 	expected := 10
-	result := WordCount("the fox jumped over the road. That's pretty cool...	yup?")
+	result := len(Words("the fox jumped over the road. That's pretty cool...	yup?"))
 
 	if result != expected {
 		t.Errorf("expected %v, got %v\n", expected, result)
 	}
 }
 
-func TestSentenceCount(t *testing.T) {
+func TestSentences(t *testing.T) {
 	expected := 6
-	result := SentenceCount(
+	result := len(Sentences(
 		`Hey this is a unit test. Just a simple unit test...
 		nothing to say just making some tests!
-		Tests!Yay! This is a test?`)
+		Tests!Yay! This is a test?`))
 
 	if result != expected {
 		t.Errorf("expected %v, got %v\n", expected, result)
 	}
 }
 
-func TestSyllableCount(t *testing.T) {
+func TestSyllables(t *testing.T) {
+	log.Println(SyllableCount("logorrhoea"))
+	log.Println(SyllableCount("used"))
+	log.Println(SyllableCount("makes"))
+	log.Println(SyllableCount("themselves"))
+	log.Println(SyllableCount("ion"))
+
 	if !(SyllableCount("logorrhoea") == 4 &&
 		SyllableCount("used") == 1 &&
 		SyllableCount("makes") == 1 &&
