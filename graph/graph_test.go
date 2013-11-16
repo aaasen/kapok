@@ -80,6 +80,60 @@ func TestRemoveArc(t *testing.T) {
 	}
 }
 
+func getPagerankTestGraph() *Graph {
+	g := NewGraph()
+
+	a := NewNode("A")
+	b := NewNode("B")
+	c := NewNode("C")
+
+	g.Add(a)
+	g.Add(b)
+	g.Add(c)
+
+	g.AddArc(a, b)
+	g.AddArc(b, a)
+	g.AddArc(b, c)
+	g.AddArc(c, a)
+
+	return g
+}
+
+func TestPagerank(t *testing.T) {
+	g := getPagerankTestGraph()
+
+	Convey("Before first PageRank, weights should be 1", t, func() {
+		for node := range g.Nodes {
+			So(node.Rank, ShouldEqual, 1)
+		}
+	})
+
+	g.PageRank()
+
+	Convey("After first iteration", t, func() {
+		So(g.Get("A").Rank, ShouldEqual, 1.425)
+		So(g.Get("B").Rank, ShouldEqual, 1)
+		So(g.Get("C").Rank, ShouldEqual, 0.575)
+	})
+
+	g.PageRank()
+
+	Convey("After second iteration", t, func() {
+		So(g.Get("A").Rank, ShouldEqual, 1.06375)
+		So(g.Get("B").Rank, ShouldEqual, 1.36125)
+		So(g.Get("C").Rank, ShouldEqual, 0.575)
+	})
+
+	g.PageRank()
+
+	Convey("After third iteration", t, func() {
+		So(g.Get("A").Rank, ShouldEqual, 1.217)
+		So(g.Get("B").Rank, ShouldEqual, 1.054)
+		So(g.Get("C").Rank, ShouldEqual, 0.728)
+	})
+
+}
+
 func BenchmarkAdd(b *testing.B) {
 	g := NewGraph()
 	b.ResetTimer()
