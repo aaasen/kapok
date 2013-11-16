@@ -43,7 +43,12 @@ func TestKapok(t *testing.T) {
 					log.Fatal("error opening graph file: ", err)
 				}
 
-				graph.Export(file)
+				err = graph.Export(file)
+
+				if err != nil {
+					log.Fatal("error exporting graph: ", err)
+				}
+
 				return
 			}
 		}

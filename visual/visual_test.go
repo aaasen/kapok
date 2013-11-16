@@ -1,6 +1,7 @@
 package visual
 
 import (
+	"log"
 	"os"
 	"testing"
 
@@ -11,7 +12,7 @@ func TestVisual(t *testing.T) {
 	in, err := os.Open("/home/aasen/dev/data/wiki-graph.gob")
 
 	if err != nil {
-		t.Fatal("error importing graph: ", err)
+		t.Fatal("error opening graph file: ", err)
 	}
 
 	out, err := os.Create("/home/aasen/dev/data/graph.svg")
@@ -20,7 +21,11 @@ func TestVisual(t *testing.T) {
 		t.Fatal("error creating svg file: ", out)
 	}
 
-	g := graph.Import(in)
+	err, g := graph.Import(in)
+
+	if err != nil {
+		log.Fatal("error importing graph: ", err)
+	}
 
 	Visualise(g, out)
 }

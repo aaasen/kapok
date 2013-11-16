@@ -53,7 +53,7 @@ func Visualise(g *graph.Graph, writer io.Writer) *svg.SVG {
 	}
 
 	for node, _ := range g.Nodes {
-		for neighbor, _ := range g.Nodes[node] {
+		for _, neighbor := range g.Nodes[node] {
 			vector := positions[node.Name]
 			neighborVec := positions[neighbor.Name]
 
