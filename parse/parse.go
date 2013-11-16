@@ -12,6 +12,7 @@ import (
 
 var pageStartRegex = regexp.MustCompile(".*<page>.*")
 var pageEndRegex = regexp.MustCompile(".*</page>.*")
+var redirectRegex = regexp.MustCompile("#REDIRECT[ \t].*?\\[\\[.*?\\]\\]")
 var linkRegex = regexp.MustCompile("\\[\\[([^|]+?)\\]\\]")
 var categoryRegex = regexp.MustCompile("\\[\\[Category:(.+?)\\]\\]")
 
@@ -20,11 +21,13 @@ var categoryRegex = regexp.MustCompile("\\[\\[Category:(.+?)\\]\\]")
 func Parse(reader io.Reader, pages chan<- *Page) {
 	chunks := make(chan []byte)
 	rawPages := make(chan []byte)
+	nonRedirectPages := make(chan []byte)
 	somePages := make(chan *Page)
 
 	go GetChunks(reader, chunks)
 	go GetRawPages(chunks, rawPages)
-	go GetPages(rawPages, somePages)
+	go FilterRedirects(rawPages, nonRedirectPages)
+	go GetPages(nonRedirectPages, somePages)
 	go GetLinks(somePages, pages)
 }
 
@@ -73,6 +76,18 @@ func GetRawPages(chunks <-chan []byte, pages chan<- []byte) {
 				if inPage {
 					page = append(page, chunk...)
 				}
+			}
+		}
+	}
+}
+
+// FilterRedirects discards all pages that redirect to another page.
+func FilterRedirects(rawPages <-chan []byte, nonRedirectPages chan<- []byte) {
+	for {
+		select {
+		case rawPage := <-rawPages:
+			if redirectRegex.Find(rawPage) == nil {
+				nonRedirectPages <- rawPage
 			}
 		}
 	}
