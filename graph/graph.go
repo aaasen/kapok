@@ -89,6 +89,11 @@ func (self *Graph) Adjacent(origin *Node, target *Node) bool {
 	return true
 }
 
+// Neighbors returns all nodes that the given node points to.
+func (self *Graph) Neighbors(origin *Node) []*Node {
+	return self.Nodes[origin]
+}
+
 // PointingTo returns all nodes that have arcs to the given node
 func (self *Graph) PointingTo(dest *Node) []*Node {
 	nodes := make([]*Node, 0)

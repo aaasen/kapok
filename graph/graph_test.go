@@ -1,7 +1,9 @@
 package graph
 
 import (
+	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
+	"math"
 	"testing"
 )
 
@@ -42,6 +44,14 @@ func TestAdjacent(t *testing.T) {
 	if g.Adjacent(g.Get("C"), g.Get("A")) {
 		t.Error("C shouldn't be adjacent to A, but it is")
 	}
+}
+
+func TestNeighbors(t *testing.T) {
+	g := getTestGraph()
+
+	Convey("A should point to B and C", t, func() {
+		So(g.Neighbors(g.Get("A")), ShouldResemble, []*Node{g.Get("B"), g.Get("C")})
+	})
 }
 
 func TestPointingTo(t *testing.T) {
@@ -99,37 +109,48 @@ func getPagerankTestGraph() *Graph {
 	return g
 }
 
+func shouldAlmostEqual(actual interface{}, expected ...interface{}) string {
+	a := actual.(float64)
+	b := actual.(float64)
+
+	if math.Abs(a-b) < 0.000001 {
+		return ""
+	} else {
+		return fmt.Sprintf("%v does not equal %v", a, b)
+	}
+}
+
 func TestPagerank(t *testing.T) {
 	g := getPagerankTestGraph()
 
 	Convey("Before first PageRank, weights should be 1", t, func() {
 		for node := range g.Nodes {
-			So(node.Rank, ShouldEqual, 1)
+			So(node.Rank, shouldAlmostEqual, 1)
 		}
 	})
 
 	g.PageRank()
 
 	Convey("After first iteration", t, func() {
-		So(g.Get("A").Rank, ShouldEqual, 1.425)
-		So(g.Get("B").Rank, ShouldEqual, 1)
-		So(g.Get("C").Rank, ShouldEqual, 0.575)
+		So(g.Get("A").Rank, shouldAlmostEqual, 1.425)
+		So(g.Get("B").Rank, shouldAlmostEqual, 1)
+		So(g.Get("C").Rank, shouldAlmostEqual, 0.575)
 	})
 
 	g.PageRank()
 
 	Convey("After second iteration", t, func() {
-		So(g.Get("A").Rank, ShouldEqual, 1.06375)
-		So(g.Get("B").Rank, ShouldEqual, 1.36125)
-		So(g.Get("C").Rank, ShouldEqual, 0.575)
+		So(g.Get("A").Rank, shouldAlmostEqual, 1.06375)
+		So(g.Get("B").Rank, shouldAlmostEqual, 1.36125)
+		So(g.Get("C").Rank, shouldAlmostEqual, 0.575)
 	})
 
 	g.PageRank()
 
 	Convey("After third iteration", t, func() {
-		So(g.Get("A").Rank, ShouldEqual, 1.217)
-		So(g.Get("B").Rank, ShouldEqual, 1.054)
-		So(g.Get("C").Rank, ShouldEqual, 0.728)
+		So(g.Get("A").Rank, shouldAlmostEqual, 1.217)
+		So(g.Get("B").Rank, shouldAlmostEqual, 1.054)
+		So(g.Get("C").Rank, shouldAlmostEqual, 0.728)
 	})
 
 }
