@@ -8,7 +8,7 @@ import (
 	"github.com/aaasen/kapok/graph"
 )
 
-func TestVisual(t *testing.T) {
+func TestCircleGraph(t *testing.T) {
 	in, err := os.Open("/home/aasen/dev/data/wiki-graph.gob")
 
 	if err != nil {
@@ -27,5 +27,5 @@ func TestVisual(t *testing.T) {
 		log.Fatal("error importing graph: ", err)
 	}
 
-	Visualise(g, out)
+	CircleGraph(g, out)
 }

@@ -12,7 +12,8 @@ import (
 const width = 2048
 const height = width
 
-func Visualise(g *graph.Graph, writer io.Writer) *svg.SVG {
+// CircleGraph returns a cirular visualisation of the given graph as an SVG.
+func CircleGraph(g *graph.Graph, writer io.Writer) *svg.SVG {
 	canvas := svg.New(writer)
 	canvas.Start(width, height)
 
