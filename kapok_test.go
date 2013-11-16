@@ -26,7 +26,6 @@ func TestKapok(t *testing.T) {
 	for {
 		select {
 		case page := <-pages:
-			page.Revision.Text = nil
 			log.Println(numPages)
 
 			origin := graph.SafeGet(page.Title)

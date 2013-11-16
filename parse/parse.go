@@ -11,6 +11,7 @@ import (
 var pageStartRegex = regexp.MustCompile(".*<page>.*")
 var pageEndRegex = regexp.MustCompile(".*</page>.*")
 var linkRegex = regexp.MustCompile("\\[\\[([^|]+?)\\]\\]")
+var categoryRegex = regexp.MustCompile("\\[\\[Category:(.+?)\\]\\]")
 
 func Parse(reader io.Reader, pages chan<- *Page) {
 	chunks := make(chan []byte)
@@ -21,6 +22,15 @@ func Parse(reader io.Reader, pages chan<- *Page) {
 	go getRawPages(chunks, rawPages)
 	go getPages(rawPages, somePages)
 	go getLinks(somePages, pages)
+
+}
+
+func CategorizedParse(reader io.Reader, out chan<- *Page, categories *Categories) {
+	pages := make(chan *Page)
+
+	go getCategories(pages, out, categories)
+
+	Parse(reader, pages)
 }
 
 func getChunks(reader io.Reader, chunks chan<- []byte) {
@@ -90,6 +100,24 @@ func getLinks(pages <-chan *Page, linkedPages chan<- *Page) {
 			}
 
 			linkedPages <- page
+		}
+	}
+}
+
+func getCategories(pages <-chan *Page, categorizedPages chan<- *Page, categories *Categories) {
+	for {
+		select {
+		case page := <-pages:
+			rawCats := categoryRegex.FindAllStringSubmatch(page.Revision.Text, -1)
+			cats := make([]string, len(rawCats))
+
+			for i, rawCat := range rawCats {
+				cats[i] = rawCat[1]
+			}
+
+			categories.AddPage(page, cats)
+
+			categorizedPages <- page
 		}
 	}
 }
