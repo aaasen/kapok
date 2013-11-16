@@ -14,10 +14,12 @@ var endingRegex = regexp.MustCompile("([^laeiouy]es|ed|[^laeoiuy]e)$")
 var staringYRegex = regexp.MustCompile("^y")
 var vowelRegex = regexp.MustCompile("[aeiouy]{1,2}")
 
+// Words returns a slice of the words in a given string.
 func Words(text string) []string {
 	return wordRegex.Split(text, -1)
 }
 
+// Sentences returns a slice of the sentences in a given string.
 func Sentences(text string) []string {
 	sentences := sentenceRegex.Split(text, -1)
 
@@ -28,6 +30,8 @@ func Sentences(text string) []string {
 	return sentences
 }
 
+// SyllableCount returns the number of syllables in a given string.
+// Dipthongs are not taken into account.
 func SyllableCount(word string) int {
 	if len(word) <= 3 {
 		return 1
@@ -39,6 +43,9 @@ func SyllableCount(word string) int {
 	return len(vowelRegex.FindAllString(word, -1))
 }
 
+// FleschKincaidEase computes the ease of reading a given text.
+// The algorithm is explained in detail here:
+// http://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests
 func FleschKincaidEase(text string) float64 {
 	words := Words(text)
 	numWords := float64(len(words))
