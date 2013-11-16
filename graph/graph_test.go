@@ -1,6 +1,7 @@
 package graph
 
 import (
+	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
 
@@ -41,6 +42,14 @@ func TestAdjacent(t *testing.T) {
 	if g.Adjacent(g.Get("C"), g.Get("A")) {
 		t.Error("C shouldn't be adjacent to A, but it is")
 	}
+}
+
+func TestPointingTo(t *testing.T) {
+	g := getTestGraph()
+
+	Convey("A and B should point to C", t, func() {
+		So(g.PointingTo(g.Get("C")), ShouldResemble, []*Node{g.Get("A"), g.Get("B")})
+	})
 }
 
 func TestRemove(t *testing.T) {

@@ -1,11 +1,11 @@
 // A memory-efficient graph for large datasets.
 //
 // Time complexities:
-// Storage:		O(V + E)
-// Add Node:	O(1)
-// Add Arc:		O(1)
+// Storage:     O(V + E)
+// Add Node:    O(1)
+// Add Arc:     O(1)
 // Remove Node: O(E)
-// Remove Arc: 	O(1)
+// Remove Arc:  O(1)
 package graph
 
 import (
@@ -87,6 +87,19 @@ func (self *Graph) Adjacent(origin *Node, target *Node) bool {
 	}
 
 	return true
+}
+
+// PointingTo returns all nodes that have arcs to the given node
+func (self *Graph) PointingTo(dest *Node) []*Node {
+	nodes := make([]*Node, 0)
+
+	for node, _ := range self.Nodes {
+		if self.Adjacent(node, dest) {
+			nodes = append(nodes, node)
+		}
+	}
+
+	return nodes
 }
 
 // String creates a string representation of the graph in the following form:
