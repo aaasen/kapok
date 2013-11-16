@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"regexp"
+	"strings"
 )
 
 var pageStartRegex = regexp.MustCompile(".*<page>.*")
@@ -112,7 +113,7 @@ func getCategories(pages <-chan *Page, categorizedPages chan<- *Page, categories
 			cats := make([]string, len(rawCats))
 
 			for i, rawCat := range rawCats {
-				cats[i] = rawCat[1]
+				cats[i] = strings.Trim(rawCat[1], " \t|")
 			}
 
 			categories.AddPage(page, cats)
