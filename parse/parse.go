@@ -1,3 +1,4 @@
+// An ad-hoc parser for Wikipedia's 45GB (and growing) XML database.
 package parse
 
 import (
@@ -14,27 +15,30 @@ var pageEndRegex = regexp.MustCompile(".*</page>.*")
 var linkRegex = regexp.MustCompile("\\[\\[([^|]+?)\\]\\]")
 var categoryRegex = regexp.MustCompile("\\[\\[Category:(.+?)\\]\\]")
 
+// Parse parses given reader as XML and dumps Page objects with links
+// into its output channel.
 func Parse(reader io.Reader, pages chan<- *Page) {
 	chunks := make(chan []byte)
 	rawPages := make(chan []byte)
 	somePages := make(chan *Page)
 
-	go getChunks(reader, chunks)
-	go getRawPages(chunks, rawPages)
-	go getPages(rawPages, somePages)
-	go getLinks(somePages, pages)
-
+	go GetChunks(reader, chunks)
+	go GetRawPages(chunks, rawPages)
+	go GetPages(rawPages, somePages)
+	go GetLinks(somePages, pages)
 }
 
+// CategorizedParse is just like Parse, except that it also categorizes pages.
 func CategorizedParse(reader io.Reader, out chan<- *Page, categories *Categories) {
 	pages := make(chan *Page)
 
-	go getCategories(pages, out, categories)
+	go GetCategories(pages, out, categories)
 
 	Parse(reader, pages)
 }
 
-func getChunks(reader io.Reader, chunks chan<- []byte) {
+// GetChunks reads an XML file line by line and dumps each line to its output channel.
+func GetChunks(reader io.Reader, chunks chan<- []byte) {
 	scanner := bufio.NewScanner(reader)
 
 	for scanner.Scan() {
@@ -46,7 +50,9 @@ func getChunks(reader io.Reader, chunks chan<- []byte) {
 	}
 }
 
-func getRawPages(chunks <-chan []byte, pages chan<- []byte) {
+// GetRawPages combines individual line elements into complete XML pages
+// so that they can be processed by a standard in-memory XML parser.
+func GetRawPages(chunks <-chan []byte, pages chan<- []byte) {
 	page := []byte("<page>")
 	inPage := false
 
@@ -72,7 +78,8 @@ func getRawPages(chunks <-chan []byte, pages chan<- []byte) {
 	}
 }
 
-func getPages(rawPages <-chan []byte, pages chan<- *Page) {
+// GetPages parses a complete XML page into a page object.
+func GetPages(rawPages <-chan []byte, pages chan<- *Page) {
 	for {
 		select {
 		case rawPage := <-rawPages:
@@ -90,7 +97,9 @@ func getPages(rawPages <-chan []byte, pages chan<- *Page) {
 	}
 }
 
-func getLinks(pages <-chan *Page, linkedPages chan<- *Page) {
+// GetLinks extracts all Wikipedia links found in pages.
+// Only links in the form [[target]] are extracted.
+func GetLinks(pages <-chan *Page, linkedPages chan<- *Page) {
 	for {
 		select {
 		case page := <-pages:
@@ -105,7 +114,10 @@ func getLinks(pages <-chan *Page, linkedPages chan<- *Page) {
 	}
 }
 
-func getCategories(pages <-chan *Page, categorizedPages chan<- *Page, categories *Categories) {
+// GetCategories extracts categories out of each Wikipedia page
+// and adds them to the given categories object.
+// Only links in the form [[Category:target]] are extracted.
+func GetCategories(pages <-chan *Page, categorizedPages chan<- *Page, categories *Categories) {
 	for {
 		select {
 		case page := <-pages:
