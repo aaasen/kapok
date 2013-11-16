@@ -6,6 +6,10 @@ type Page struct {
 	Links    []string
 }
 
+func (self *Page) String() string {
+	return self.Title
+}
+
 type Revision struct {
 	Text string `xml:"text"`
 }

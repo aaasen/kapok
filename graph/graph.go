@@ -77,12 +77,12 @@ func (self *Graph) String() string {
 	for node, neighbors := range self.Nodes {
 		str += fmt.Sprintf("%s -> (", node.String())
 
-		n := make([]string, 0)
-		for _, neighbor := range neighbors {
-			n = append(n, neighbor.String())
+		neighborStrings := make([]string, len(neighbors))
+		for i, neighbor := range neighbors {
+			neighborStrings[i] = neighbor.String()
 		}
 
-		str += strings.Join(n, ", ")
+		str += strings.Join(neighborStrings, ", ")
 		str += ")\n"
 	}
 
