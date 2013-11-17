@@ -2,11 +2,9 @@ package stats
 
 import (
 	"regexp"
-	"strings"
 )
 
-var wordRegex = regexp.MustCompile("[ \t\r\n\v\f]+")
-var wordChars = " \t\r\n\v\f.?!"
+var wordRegex = regexp.MustCompile("[A-Za-z0-9_']+")
 
 var sentenceRegex = regexp.MustCompile("[ \t\r\n\v\f]*[.?!]+[ \t\r\n\v\f]*")
 
@@ -16,7 +14,7 @@ var vowelRegex = regexp.MustCompile("[aeiouy]{1,2}")
 
 // Words returns a slice of the words in a given string.
 func Words(text string) []string {
-	return wordRegex.Split(text, -1)
+	return wordRegex.FindAllString(text, -1)
 }
 
 // Sentences returns a slice of the sentences in a given string.
@@ -58,8 +56,4 @@ func FleschKincaidEase(text string) float64 {
 
 	return 206.835 - 1.015*(numWords/numSentences) - 84.6*(float64(numSyllables)/numWords)
 
-}
-
-func cleanWord(word string) string {
-	return strings.Trim(word, wordChars)
 }
