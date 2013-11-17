@@ -155,7 +155,16 @@ func TestPageRank(t *testing.T) {
 		So(g.Get("B").Rank, shouldAlmostEqual, 1.054)
 		So(g.Get("C").Rank, shouldAlmostEqual, 0.728)
 	})
+}
 
+func TestNormalizeRanks(t *testing.T) {
+	g := getPagerankTestGraph()
+
+	Convey("All weights should be set to 1/3", t, func() {
+		for node := range g.Nodes {
+			So(node.Rank, shouldAlmostEqual, 1.0/3.0)
+		}
+	})
 }
 
 func BenchmarkAdd(b *testing.B) {
