@@ -27,7 +27,9 @@ func getTestGraph() *Graph {
 }
 
 func TestCreate(t *testing.T) {
-	getTestGraph()
+	Convey("A graph should be created without a panic", t, func() {
+		So(func() { getTestGraph() }, ShouldNotPanic)
+	})
 }
 
 func TestPrint(t *testing.T) {
@@ -37,13 +39,10 @@ func TestPrint(t *testing.T) {
 func TestAdjacent(t *testing.T) {
 	g := getTestGraph()
 
-	if !g.Adjacent(g.Get("A"), g.Get("B")) {
-		t.Error("A should be adjacent to B, but isn't")
-	}
-
-	if g.Adjacent(g.Get("C"), g.Get("A")) {
-		t.Error("C shouldn't be adjacent to A, but it is")
-	}
+	Convey("A should be adjacent to B and C should not be adjacent to A", t, func() {
+		So(g.Adjacent(g.Get("A"), g.Get("B")), ShouldBeTrue)
+		So(g.Adjacent(g.Get("C"), g.Get("A")), ShouldBeFalse)
+	})
 }
 
 func TestNeighbors(t *testing.T) {
@@ -64,30 +63,32 @@ func TestPointingTo(t *testing.T) {
 
 func TestRemove(t *testing.T) {
 	g := getTestGraph()
-	g.Remove(g.Get("B"))
 
-	if !g.Adjacent(g.Get("A"), g.Get("C")) &&
-		g.Get("B") == nil {
-		t.Fail()
-	}
+	Convey("Removing B should work", t, func() {
+		So(g.Get("B"), ShouldNotBeNil)
+
+		So(func() { g.Remove(g.Get("B")) }, ShouldNotPanic)
+
+		So(g.Get("B"), ShouldBeNil)
+	})
 }
 
 func TestAddArc(t *testing.T) {
 	g := getTestGraph()
-	g.AddArc(g.Get("B"), g.Get("A"))
 
-	if !g.Adjacent(g.Get("B"), g.Get("A")) {
-		t.Fail()
-	}
+	Convey("Adding an arc between B and A should make them adjacent", t, func() {
+		So(func() { g.AddArc(g.Get("B"), g.Get("A")) }, ShouldNotPanic)
+		So(g.Adjacent(g.Get("B"), g.Get("A")), ShouldBeTrue)
+	})
 }
 
 func TestRemoveArc(t *testing.T) {
 	g := getTestGraph()
-	g.RemoveArc(g.Get("A"), g.Get("B"))
 
-	if g.Adjacent(g.Get("A"), g.Get("B")) {
-		t.Fail()
-	}
+	Convey("Removing an arc between A and B should make them non adjacent", t, func() {
+		So(func() { g.RemoveArc(g.Get("A"), g.Get("B")) }, ShouldNotPanic)
+		So(g.Adjacent(g.Get("A"), g.Get("B")), ShouldBeFalse)
+	})
 }
 
 func getPagerankTestGraph() *Graph {
