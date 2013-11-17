@@ -121,7 +121,9 @@ func shouldAlmostEqual(actual interface{}, expected ...interface{}) string {
 	}
 }
 
-func TestPagerank(t *testing.T) {
+// TestPageRank tests Graph.PageRank() using test data here:
+// http://en.wikipedia.org/wiki/PageRank
+func TestPageRank(t *testing.T) {
 	g := getPagerankTestGraph()
 
 	Convey("Before first PageRank, weights should be 1", t, func() {
@@ -130,7 +132,7 @@ func TestPagerank(t *testing.T) {
 		}
 	})
 
-	g.PageRank()
+	g.pageRankOnce()
 
 	Convey("After first iteration", t, func() {
 		So(g.Get("A").Rank, shouldAlmostEqual, 1.425)
@@ -138,7 +140,7 @@ func TestPagerank(t *testing.T) {
 		So(g.Get("C").Rank, shouldAlmostEqual, 0.575)
 	})
 
-	g.PageRank()
+	g.pageRankOnce()
 
 	Convey("After second iteration", t, func() {
 		So(g.Get("A").Rank, shouldAlmostEqual, 1.06375)
@@ -146,7 +148,7 @@ func TestPagerank(t *testing.T) {
 		So(g.Get("C").Rank, shouldAlmostEqual, 0.575)
 	})
 
-	g.PageRank()
+	g.pageRankOnce()
 
 	Convey("After third iteration", t, func() {
 		So(g.Get("A").Rank, shouldAlmostEqual, 1.217)
