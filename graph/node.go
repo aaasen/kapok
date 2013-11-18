@@ -10,7 +10,7 @@ type Node struct {
 func NewNode(name string) *Node {
 	return &Node{
 		Name: name,
-		Rank: 0.0,
+		Rank: 1.0,
 	}
 }
 

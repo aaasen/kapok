@@ -1,9 +1,7 @@
 package graph
 
 import (
-	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
-	"math"
 	"testing"
 )
 
@@ -110,17 +108,6 @@ func getPagerankTestGraph() *Graph {
 	return g
 }
 
-func shouldAlmostEqual(actual interface{}, expected ...interface{}) string {
-	a := actual.(float64)
-	b := actual.(float64)
-
-	if math.Abs(a-b) < 0.000001 {
-		return ""
-	} else {
-		return fmt.Sprintf("%v does not equal %v", a, b)
-	}
-}
-
 // TestPageRank tests Graph.PageRank() using test data here:
 // http://en.wikipedia.org/wiki/PageRank
 func TestPageRank(t *testing.T) {
@@ -128,32 +115,32 @@ func TestPageRank(t *testing.T) {
 
 	Convey("Before first PageRank, weights should be 1", t, func() {
 		for node := range g.Nodes {
-			So(node.Rank, shouldAlmostEqual, 1)
+			So(node.Rank, ShouldAlmostEqual, 1.0)
 		}
 	})
 
 	g.pageRankOnce()
 
 	Convey("After first iteration", t, func() {
-		So(g.Get("A").Rank, shouldAlmostEqual, 1.425)
-		So(g.Get("B").Rank, shouldAlmostEqual, 1)
-		So(g.Get("C").Rank, shouldAlmostEqual, 0.575)
+		So(g.Get("A").Rank, ShouldAlmostEqual, 1.425)
+		So(g.Get("B").Rank, ShouldAlmostEqual, 1.0)
+		So(g.Get("C").Rank, ShouldAlmostEqual, 0.575)
 	})
 
 	g.pageRankOnce()
 
 	Convey("After second iteration", t, func() {
-		So(g.Get("A").Rank, shouldAlmostEqual, 1.06375)
-		So(g.Get("B").Rank, shouldAlmostEqual, 1.36125)
-		So(g.Get("C").Rank, shouldAlmostEqual, 0.575)
+		So(g.Get("A").Rank, ShouldAlmostEqual, 1.06375)
+		So(g.Get("B").Rank, ShouldAlmostEqual, 1.36125)
+		So(g.Get("C").Rank, ShouldAlmostEqual, 0.575)
 	})
 
 	g.pageRankOnce()
 
 	Convey("After third iteration", t, func() {
-		So(g.Get("A").Rank, shouldAlmostEqual, 1.217)
-		So(g.Get("B").Rank, shouldAlmostEqual, 1.054)
-		So(g.Get("C").Rank, shouldAlmostEqual, 0.728)
+		So(g.Get("A").Rank, ShouldAlmostEqual, 1.217)
+		So(g.Get("B").Rank, ShouldAlmostEqual, 1.054)
+		So(g.Get("C").Rank, ShouldAlmostEqual, 0.728)
 	})
 }
 
@@ -162,7 +149,7 @@ func TestNormalizeRanks(t *testing.T) {
 
 	Convey("All weights should be set to 1/3", t, func() {
 		for node := range g.Nodes {
-			So(node.Rank, shouldAlmostEqual, 1.0/3.0)
+			So(node.Rank, ShouldAlmostEqual, 1.0/3.0)
 		}
 	})
 }
