@@ -12,7 +12,7 @@ const DEFAULT_ITERATIONS = 15
 // and more simply here:
 // http://stackoverflow.com/questions/3950627/python-implementation-of-pagerank
 func (graph *Graph) PageRank(n int) {
-	graph.normalizeWeights()
+	graph.normalizeRanks()
 
 	for i := 0; i < n; i++ {
 		graph.pageRankOnce()
@@ -22,7 +22,7 @@ func (graph *Graph) PageRank(n int) {
 // Sets all ranks to 1 / (number of nodes).
 // This should only be used before running pagerank,
 // when the weights mean nothing.
-func (graph *Graph) normalizeWeights() {
+func (graph *Graph) normalizeRanks() {
 	rank := 1.0 / float64(len(graph.Nodes))
 
 	for node := range graph.Nodes {

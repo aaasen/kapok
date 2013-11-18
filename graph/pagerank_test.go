@@ -62,6 +62,7 @@ func TestPageRank(t *testing.T) {
 
 func TestNormalizeRanks(t *testing.T) {
 	g := getPagerankTestGraph()
+	g.normalizeRanks()
 
 	Convey("All weights should be set to 1/3", t, func() {
 		for node := range g.Nodes {
