@@ -54,9 +54,9 @@ func TestPageRank(t *testing.T) {
 	g.pageRankOnce()
 
 	Convey("After third iteration", t, func() {
-		So(g.Get("A").Rank, ShouldAlmostEqual, 1.217)
-		So(g.Get("B").Rank, ShouldAlmostEqual, 1.054)
-		So(g.Get("C").Rank, ShouldAlmostEqual, 0.728)
+		So(g.Get("A").Rank, ShouldAlmostEqual, 1.217, 0.001)
+		So(g.Get("B").Rank, ShouldAlmostEqual, 1.054, 0.001)
+		So(g.Get("C").Rank, ShouldAlmostEqual, 0.728, 0.001)
 	})
 }
 

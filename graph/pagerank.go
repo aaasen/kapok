@@ -23,7 +23,11 @@ func (graph *Graph) PageRank(n int) {
 // This should only be used before running pagerank,
 // when the weights mean nothing.
 func (graph *Graph) normalizeRanks() {
-	rank := 1.0 / float64(len(graph.Nodes))
+	rank := 1.0
+
+	if len(graph.Nodes) > 0 {
+		rank = 1.0 / float64(len(graph.Nodes))
+	}
 
 	for node := range graph.Nodes {
 		node.Rank = rank
@@ -31,13 +35,19 @@ func (graph *Graph) normalizeRanks() {
 }
 
 func (graph *Graph) pageRankOnce() {
+	oldRanks := make(map[*Node]float64)
+
+	for node := range graph.Nodes {
+		oldRanks[node] = node.Rank
+	}
+
 	for node := range graph.Nodes {
 		pointingToNode := graph.PointingTo(node)
 
 		sumRanks := 0.0
 
 		for _, neighbor := range pointingToNode {
-			sumRanks += neighbor.Rank / float64(len(graph.Neighbors(neighbor)))
+			sumRanks += oldRanks[neighbor] / float64(len(graph.Neighbors(neighbor)))
 		}
 
 		node.Rank = (1 - DEFAULT_DAMPING) + DEFAULT_DAMPING*sumRanks
