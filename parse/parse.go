@@ -51,6 +51,8 @@ func GetChunks(reader io.Reader, chunks chan<- []byte) {
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
+
+	close(chunks)
 }
 
 // GetRawPages combines individual line elements into complete XML pages
@@ -61,7 +63,12 @@ func GetRawPages(chunks <-chan []byte, pages chan<- []byte) {
 
 	for {
 		select {
-		case chunk := <-chunks:
+		case chunk, ok := <-chunks:
+			if !ok {
+				close(pages)
+				return
+			}
+
 			if pageStartRegex.Match(chunk) {
 				inPage = true
 			} else if pageEndRegex.Match(chunk) {
@@ -85,7 +92,12 @@ func GetRawPages(chunks <-chan []byte, pages chan<- []byte) {
 func FilterRedirects(rawPages <-chan []byte, nonRedirectPages chan<- []byte) {
 	for {
 		select {
-		case rawPage := <-rawPages:
+		case rawPage, ok := <-rawPages:
+			if !ok {
+				close(nonRedirectPages)
+				return
+			}
+
 			if redirectRegex.Find(rawPage) == nil {
 				nonRedirectPages <- rawPage
 			}
@@ -97,7 +109,12 @@ func FilterRedirects(rawPages <-chan []byte, nonRedirectPages chan<- []byte) {
 func GetPages(rawPages <-chan []byte, pages chan<- *Page) {
 	for {
 		select {
-		case rawPage := <-rawPages:
+		case rawPage, ok := <-rawPages:
+			if !ok {
+				close(pages)
+				return
+			}
+
 			pageStruct := &Page{}
 
 			err := xml.Unmarshal(rawPage, pageStruct)
@@ -116,7 +133,12 @@ func GetPages(rawPages <-chan []byte, pages chan<- *Page) {
 func GetLinks(pages <-chan *Page, linkedPages chan<- *Page) {
 	for {
 		select {
-		case page := <-pages:
+		case page, ok := <-pages:
+			if !ok {
+				close(linkedPages)
+				return
+			}
+
 			links := linkRegex.FindAllStringSubmatch(page.Revision.Text, -1)
 
 			for _, link := range links {
@@ -134,7 +156,12 @@ func GetLinks(pages <-chan *Page, linkedPages chan<- *Page) {
 func GetCategories(pages <-chan *Page, categorizedPages chan<- *Page, categories *Categories) {
 	for {
 		select {
-		case page := <-pages:
+		case page, ok := <-pages:
+			if !ok {
+				close(categorizedPages)
+				return
+			}
+
 			rawCats := categoryRegex.FindAllStringSubmatch(page.Revision.Text, -1)
 			cats := make([]string, len(rawCats))
 
