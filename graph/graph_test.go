@@ -2,6 +2,7 @@ package graph
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
+	"os"
 	"testing"
 )
 
@@ -86,6 +87,38 @@ func TestRemoveArc(t *testing.T) {
 	Convey("Removing an arc between A and B should make them non adjacent", t, func() {
 		So(func() { g.RemoveArc(g.Get("A"), g.Get("B")) }, ShouldNotPanic)
 		So(g.Adjacent(g.Get("A"), g.Get("B")), ShouldBeFalse)
+	})
+}
+
+func TestImportExport(t *testing.T) {
+	g := getTestGraph()
+
+	file, err := os.Create(".test-graph.gob")
+
+	if err != nil {
+		t.Error("error opening graph file: ", err)
+	}
+
+	Convey("Exporting should work", t, func() {
+		So(func() { g.Export(file) }, ShouldNotPanic)
+	})
+
+	var importedGraph *Graph
+	var importError error
+
+	in, err := os.Open(".test-graph.gob")
+
+	if err != nil {
+		t.Error("error opening graph file: ", err)
+	}
+
+	Convey("Importing should work", t, func() {
+		So(func() {
+			importError, importedGraph = Import(in)
+		}, ShouldNotPanic)
+		So(importError, ShouldBeNil)
+
+		So(g.String(), ShouldEqual, importedGraph.String())
 	})
 }
 
