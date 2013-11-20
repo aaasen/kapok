@@ -103,8 +103,7 @@ func GetPages(rawPages <-chan []byte, pages chan<- *Page) {
 			err := xml.Unmarshal(rawPage, pageStruct)
 
 			if err != nil {
-				log.Println(string(rawPage))
-				log.Println(err)
+
 			} else {
 				pages <- pageStruct
 			}
