@@ -11,6 +11,9 @@ import (
 	"github.com/jmcvetta/neoism"
 )
 
+// GenerateNeoGraph transfers a Wikipedia database dump into a Neo4J database.
+// in is a reader that contains the database,
+// maxPages is the maxiumum number of pages to load (or -1 for unlimited)
 func GenerateNeoGraph(in io.Reader, maxPages int) error {
 	graph, err := neoism.Connect("http://localhost:7474/db/data")
 
@@ -27,6 +30,8 @@ func GenerateNeoGraph(in io.Reader, maxPages int) error {
 	for {
 		select {
 		case page, ok := <-pages:
+
+			log.Println(numPages)
 			numPages++
 
 			if !ok {
