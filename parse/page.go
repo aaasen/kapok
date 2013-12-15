@@ -3,9 +3,10 @@ package parse
 // Page is a representation of a Wikipedia page with only the necessary fields.
 // A Wikipedia page can be unmarshalled into a page just fine.
 type Page struct {
-	Title    string    `xml:"title"`
-	Revision *Revision `xml:"revision"`
-	Links    []string
+	Title      string    `xml:"title"`
+	Revision   *Revision `xml:"revision"`
+	Links      []string
+	Categories []string
 }
 
 func (self *Page) String() string {

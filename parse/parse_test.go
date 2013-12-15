@@ -42,10 +42,8 @@ func TestCategorizedParse(t *testing.T) {
 	}
 
 	pages := make(chan *Page)
-	cats := NewCategories()
-	defer log.Println(cats)
 
-	go CategorizedParse(file, pages, cats)
+	go CategorizedParse(file, pages)
 
 	numPages := 0
 	maxPages := 10

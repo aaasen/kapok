@@ -32,10 +32,10 @@ func Parse(reader io.Reader, pages chan<- *Page) {
 }
 
 // CategorizedParse is just like Parse, except that it also categorizes pages.
-func CategorizedParse(reader io.Reader, out chan<- *Page, categories *Categories) {
+func CategorizedParse(reader io.Reader, out chan<- *Page) {
 	pages := make(chan *Page)
 
-	go GetCategories(pages, out, categories)
+	go GetCategories(pages, out)
 
 	Parse(reader, pages)
 }
@@ -153,7 +153,7 @@ func GetLinks(pages <-chan *Page, linkedPages chan<- *Page) {
 // GetCategories extracts categories out of each Wikipedia page
 // and adds them to the given categories object.
 // Only links in the form [[Category:target]] are extracted.
-func GetCategories(pages <-chan *Page, categorizedPages chan<- *Page, categories *Categories) {
+func GetCategories(pages <-chan *Page, categorizedPages chan<- *Page) {
 	for {
 		select {
 		case page, ok := <-pages:
@@ -169,7 +169,7 @@ func GetCategories(pages <-chan *Page, categorizedPages chan<- *Page, categories
 				cats[i] = strings.Trim(rawCat[1], " \t|")
 			}
 
-			categories.AddPage(page, cats)
+			page.Categories = cats
 
 			categorizedPages <- page
 		}
