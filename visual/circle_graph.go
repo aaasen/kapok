@@ -53,6 +53,7 @@ func CircleGraph(g *graph.Graph, writer io.Writer) *svg.SVG {
 		}
 	}
 
+	canvas.Gstyle("stroke:#e74c3c;stroke-width:0.5")
 	for node, _ := range g.Nodes {
 		for _, neighbor := range g.Nodes[node] {
 			vector := positions[node.Name]
@@ -60,29 +61,31 @@ func CircleGraph(g *graph.Graph, writer io.Writer) *svg.SVG {
 
 			canvas.Line(
 				vector.X, vector.Y,
-				neighborVec.X, neighborVec.Y,
-				"stroke:#e74c3c;stroke-width:0.5")
+				neighborVec.X, neighborVec.Y)
 		}
 	}
+	canvas.Gend()
 
+	canvas.Gstyle("text-anchor:middle;fill:black")
 	for node, vector := range positions {
 		canvas.Circle(
 			vector.X,
 			vector.Y,
 			1,
-			"fill:rgba(0, 0, 0, 0.2)")
+			"opacity:0.2")
 
 		canvas.Text(
 			0,
 			0,
 			node,
-			fmt.Sprintf(`style="text-anchor:middle;font-size:%vpx;fill:rbga(0, 0, 0, 1);"`,
+			fmt.Sprintf(`style="font-size:%vpx;"`,
 				int(64.0/(vector.Rad))+12),
 			fmt.Sprintf(`transform="rotate(%v, %v, %v) translate(%v, %v)"`,
 				vector.Rot,
 				vector.X, vector.Y,
 				vector.X, vector.Y))
 	}
+	canvas.Gend()
 
 	canvas.End()
 
