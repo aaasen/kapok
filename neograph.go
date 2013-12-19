@@ -1,7 +1,6 @@
 package kapok
 
 import (
-	"errors"
 	"io"
 	"log"
 	"time"
@@ -22,7 +21,7 @@ func GenerateNeoGraph(in io.Reader, maxPages int) error {
 	}
 
 	pages := make(chan *parse.Page)
-	go parse.Parse(in, pages)
+	go parse.CategorizedParse(in, pages)
 
 	start := time.Now()
 	numPages := 0
@@ -30,41 +29,46 @@ func GenerateNeoGraph(in io.Reader, maxPages int) error {
 	for {
 		select {
 		case page, ok := <-pages:
-
-			log.Println(numPages)
 			numPages++
 
 			if !ok {
 				return nil
 			}
 
-			origin, _, err := graph.GetOrCreateNode("pages", "title", neoism.Props{"title": page.Title})
+			result := []struct {
+				N neoism.Node
+			}{}
 
-			if err != nil {
-				return errors.New("error fetching origin: " + err.Error())
+			cypherQuery := neoism.CypherQuery{
+				Statement: `
+				MERGE (origin:Article { title:{pageTitle} })
+				FOREACH (otherName IN {otherNames} |
+					MERGE (other:Article { title: otherName})
+					CREATE UNIQUE (origin)-[r:REFERS_TO]->(other))
+				FOREACH (catName IN {catNames} |
+					MERGE (cat:Category { title:catName }) 
+					CREATE UNIQUE (origin)-[:IN_CATEGORY]-(cat)) 
+				RETURN origin
+				`,
+				Parameters: neoism.Props{
+					"pageTitle":  page.Title,
+					"catNames":   page.Categories,
+					"otherNames": page.Links},
+				Result: &result,
 			}
 
-			for _, destTitle := range page.Links {
+			err := graph.Cypher(&cypherQuery)
 
-				dest, _, err := graph.GetOrCreateNode("pages", "title", neoism.Props{"title": destTitle})
-
-				if err != nil {
-					return errors.New("error fetching dest: " + err.Error())
-				}
-
-				_, err = origin.Relate("link", dest.Id(), neoism.Props{})
-
-				if err != nil {
-					return errors.New("error relating origin and dest: " + err.Error())
-				}
+			if err != nil {
+				log.Println("error executing cypher query: " + err.Error())
 			}
 
 			if maxPages != -1 && numPages >= maxPages {
 				return nil
 			}
 
-			if numPages%100 == 0 {
-				log.Println("processed %v page in %v", numPages, time.Since(start))
+			if numPages%1 == 0 {
+				log.Printf("processed %v pages in %v", numPages, time.Since(start))
 			}
 		}
 	}
