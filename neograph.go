@@ -10,6 +10,37 @@ import (
 	"github.com/jmcvetta/neoism"
 )
 
+type governor struct {
+	maxConnections     int
+	currentConnections int
+	queryChan          chan *neoism.CypherQuery
+	ticker             <-chan time.Time
+	db                 *neoism.Database
+}
+
+func (self *governor) run() {
+	for _ = range self.ticker {
+		if self.currentConnections < self.maxConnections {
+			select {
+			case query, ok := <-self.queryChan:
+				self.currentConnections++
+
+				if !ok {
+					return
+				}
+
+				err := self.db.Cypher(query)
+
+				if err != nil {
+					log.Println("error executing cypher query: " + err.Error())
+				}
+
+				self.currentConnections--
+			}
+		}
+	}
+}
+
 // GenerateNeoGraph transfers a Wikipedia database dump into a Neo4J database.
 // in is a reader that contains the database,
 // maxPages is the maxiumum number of pages to load (or -1 for unlimited)
@@ -20,8 +51,21 @@ func GenerateNeoGraph(in io.Reader, maxPages int) error {
 		return err
 	}
 
-	pages := make(chan *parse.Page)
+	governorTicker := time.Tick(time.Millisecond * 10)
+	queryChan := make(chan *neoism.CypherQuery, 512)
+
+	governor := &governor{
+		maxConnections:     512,
+		currentConnections: 0,
+		queryChan:          queryChan,
+		ticker:             governorTicker,
+		db:                 graph,
+	}
+
+	pages := make(chan *parse.Page, 1024)
 	go parse.CategorizedParse(in, pages)
+
+	go governor.run()
 
 	start := time.Now()
 	numPages := 0
@@ -29,6 +73,10 @@ func GenerateNeoGraph(in io.Reader, maxPages int) error {
 	for {
 		select {
 		case page, ok := <-pages:
+			if !ok {
+				return nil
+			}
+
 			if maxPages != -1 && numPages >= maxPages {
 				return nil
 			}
@@ -38,10 +86,6 @@ func GenerateNeoGraph(in io.Reader, maxPages int) error {
 			}
 
 			numPages++
-
-			if !ok {
-				return nil
-			}
 
 			result := []struct {
 				N neoism.Node
@@ -65,13 +109,7 @@ func GenerateNeoGraph(in io.Reader, maxPages int) error {
 				Result: &result,
 			}
 
-			go func() {
-				err := graph.Cypher(&cypherQuery)
-
-				if err != nil {
-					log.Println("error executing cypher query: " + err.Error())
-				}
-			}()
+			queryChan <- &cypherQuery
 		}
 	}
 }

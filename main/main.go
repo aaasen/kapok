@@ -14,5 +14,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	kapok.GenerateNeoGraph(in, 10)
+	kapok.GenerateNeoGraph(in, -1)
 }
