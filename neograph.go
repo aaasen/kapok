@@ -29,6 +29,14 @@ func GenerateNeoGraph(in io.Reader, maxPages int) error {
 	for {
 		select {
 		case page, ok := <-pages:
+			if maxPages != -1 && numPages >= maxPages {
+				return nil
+			}
+
+			if numPages%1 == 0 {
+				log.Printf("processed %v pages in %v", numPages, time.Since(start))
+			}
+
 			numPages++
 
 			if !ok {
@@ -57,19 +65,13 @@ func GenerateNeoGraph(in io.Reader, maxPages int) error {
 				Result: &result,
 			}
 
-			err := graph.Cypher(&cypherQuery)
+			go func() {
+				err := graph.Cypher(&cypherQuery)
 
-			if err != nil {
-				log.Println("error executing cypher query: " + err.Error())
-			}
-
-			if maxPages != -1 && numPages >= maxPages {
-				return nil
-			}
-
-			if numPages%1 == 0 {
-				log.Printf("processed %v pages in %v", numPages, time.Since(start))
-			}
+				if err != nil {
+					log.Println("error executing cypher query: " + err.Error())
+				}
+			}()
 		}
 	}
 }
