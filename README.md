@@ -1,9 +1,13 @@
-
 # Kapok
 
 A Knowledge Graph of Wikipedia.
 
-![](https://raw.github.com/aaasen/kapok/master/demo/anarchism.png)
+![](https://raw.github.com/aaasen/kapok/master/demo/ayn_rand.png)
+
+A graph of how Ayn Rand relates to other historical figures.
+Orange nodes represent categories while purple nodes represent articles.
+This visualisation was created with the Neo4J graph browser using a small subset of the Wikipedia graph;
+it is not completely accurate.
 
 ## Description
 
