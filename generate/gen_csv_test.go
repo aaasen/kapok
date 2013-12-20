@@ -14,11 +14,10 @@ func TestGeneratePage(t *testing.T) {
 		Categories: []string{"cat0", "cat1", "cat2"},
 	}
 
-	articles, _ := os.Create("articles.csv")
-	categories, _ := os.Create("categories.csv")
+	nodes, _ := os.Create("articles.csv")
 	rels, _ := os.Create("rels.csv")
 
 	gen := NewCSVGenerator()
 
-	gen.GeneratePage(page, articles, categories, rels)
+	gen.GeneratePage(page, nodes, rels)
 }

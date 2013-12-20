@@ -24,7 +24,7 @@ type IDGenerator struct {
 
 func NewIDGenerator() *IDGenerator {
 	return &IDGenerator{
-		1,
+		0,
 		make(map[string]int64),
 	}
 }
@@ -47,19 +47,19 @@ func (self *IDGenerator) GetID(title string, category bool) (int64, bool) {
 }
 
 func (self *CSVGenerator) GeneratePage(page *parse.Page,
-	articles io.Writer, categories io.Writer, rels io.Writer) {
+	nodes io.Writer, rels io.Writer) {
 
 	originId, created := self.ids.GetID(page.Title, false)
 
 	if created {
-		articles.Write([]byte(page.Title + "\n"))
+		nodes.Write([]byte(fmt.Sprintf("%s\t%s\n", page.Title, "Article")))
 	}
 
 	for _, link := range page.Links {
 		linkId, created := self.ids.GetID(link, false)
 
 		if created {
-			articles.Write([]byte(link + "\n"))
+			nodes.Write([]byte(fmt.Sprintf("%s\t%s\n", link, "Article")))
 		}
 
 		rels.Write([]byte(fmt.Sprintf("%d\t%d\t%s\n", originId, linkId, "REFERS_TO")))
@@ -69,7 +69,7 @@ func (self *CSVGenerator) GeneratePage(page *parse.Page,
 		catId, created := self.ids.GetID(category, true)
 
 		if created {
-			categories.Write([]byte(category + "\n"))
+			nodes.Write([]byte(fmt.Sprintf("%s\t%s\n", category, "Category")))
 		}
 
 		rels.Write([]byte(fmt.Sprintf("%d\t%d\t%s\n", originId, catId, "IN_CATEGORY")))
