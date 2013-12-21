@@ -21,6 +21,10 @@ func main() {
 			return
 		}
 
-		GenerateByPath(os.Args[2], os.Args[3], os.Args[4])
+		err := GenerateByPath(os.Args[2], os.Args[3], os.Args[4])
+
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
