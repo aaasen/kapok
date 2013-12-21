@@ -1,45 +1,19 @@
-package main
+package generate
 
 import (
 	"io"
 	"log"
-	"os"
 	"time"
 
-	"github.com/aaasen/kapok/generate"
 	"github.com/aaasen/kapok/parse"
 )
 
-func GenerateByPath(inPath, nodesPath, relsPath string) error {
-	in, err := os.Open(inPath)
-
-	if err != nil {
-		return err
-	}
-
-	nodes, err := os.Create(nodesPath)
-
-	if err != nil {
-		return err
-	}
-
-	rels, err := os.Create(relsPath)
-
-	if err != nil {
-		return err
-	}
-
-	Generate(in, nodes, rels)
-
-	return nil
-}
-
-func Generate(in io.Reader, nodes io.Writer, rels io.Writer) {
+func Generate(in io.Reader, nodes io.Writer, rels io.Writer, maxPages int) {
 
 	nodes.Write([]byte("i:id\ttitle\tl:label\n"))
 	rels.Write([]byte("start\tend\ttype\n"))
 
-	gen := generate.NewCSVGenerator()
+	gen := NewCSVGenerator()
 
 	pages := make(chan *parse.Page)
 	go parse.CategorizedParse(in, pages)
@@ -55,6 +29,10 @@ func Generate(in io.Reader, nodes io.Writer, rels io.Writer) {
 				return
 			}
 
+			if numPages > maxPages && maxPages != -1 {
+				return
+			}
+
 			gen.GeneratePage(page, nodes, rels)
 
 			if numPages%100 == 0 {
@@ -62,6 +40,7 @@ func Generate(in io.Reader, nodes io.Writer, rels io.Writer) {
 					numPages, time.Since(start), float64(numPages)/time.Since(start).Seconds())
 			}
 
+			page = nil
 			numPages++
 		}
 	}
