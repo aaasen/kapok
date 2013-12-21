@@ -44,12 +44,18 @@ func CategorizedParse(reader io.Reader, out chan<- *Page) {
 func GetChunks(reader io.Reader, chunks chan<- []byte) {
 	scanner := bufio.NewScanner(reader)
 
-	for scanner.Scan() {
-		chunks <- scanner.Bytes()
-	}
+	eof := false
 
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+	for !eof {
+		if scanner.Scan() {
+			chunks <- scanner.Bytes()
+		} else {
+			if err := scanner.Err(); err != nil {
+				log.Println(err.Error() + " skipping line")
+			} else {
+				eof = true
+			}
+		}
 	}
 
 	close(chunks)
