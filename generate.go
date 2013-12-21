@@ -36,7 +36,7 @@ func GenerateByPath(inPath, nodesPath, relsPath string) error {
 
 func Generate(in io.Reader, nodes io.Writer, rels io.Writer) {
 
-	nodes.Write([]byte("title\tl:label\n"))
+	nodes.Write([]byte("i:id\ttitle\tl:label\n"))
 	rels.Write([]byte("start\tend\ttype\n"))
 
 	gen := generate.NewCSVGenerator()

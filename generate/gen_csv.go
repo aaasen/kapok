@@ -3,6 +3,7 @@ package generate
 import (
 	"fmt"
 	"io"
+	"regexp"
 
 	"github.com/aaasen/kapok/parse"
 )
@@ -31,7 +32,7 @@ func NewIDGenerator() *IDGenerator {
 
 func (self *IDGenerator) GetID(title string, category bool) (int64, bool) {
 	if category {
-		title = "cat:" + title
+		title = "c4ef35:" + title
 	}
 
 	id, exists := self.labels[title]
@@ -52,26 +53,38 @@ func (self *CSVGenerator) GeneratePage(page *parse.Page,
 	originId, created := self.ids.GetID(page.Title, false)
 
 	if created {
-		nodes.Write([]byte(fmt.Sprintf("%s\t%s\n", page.Title, "Article")))
+		writeNode(nodes, originId, page.Title, "Article")
 	}
 
 	for _, link := range page.Links {
 		linkId, created := self.ids.GetID(link, false)
 
 		if created {
-			nodes.Write([]byte(fmt.Sprintf("%s\t%s\n", link, "Article")))
+			writeNode(nodes, linkId, link, "Article")
 		}
 
-		rels.Write([]byte(fmt.Sprintf("%d\t%d\t%s\n", originId, linkId, "REFERS_TO")))
+		writeRel(rels, originId, linkId, "REFERS_TO")
 	}
 
 	for _, category := range page.Categories {
 		catId, created := self.ids.GetID(category, true)
 
 		if created {
-			nodes.Write([]byte(fmt.Sprintf("%s\t%s\n", category, "Category")))
+			writeNode(nodes, catId, category, "Category")
 		}
 
-		rels.Write([]byte(fmt.Sprintf("%d\t%d\t%s\n", originId, catId, "IN_CATEGORY")))
+		writeRel(rels, originId, catId, "IN_CATEGORY")
 	}
+}
+
+var invalidCharacterRegex = regexp.MustCompile("[\t\"\\']")
+
+func writeNode(out io.Writer, id int64, title string, label string) {
+	title = invalidCharacterRegex.ReplaceAllString(title, "")
+
+	out.Write([]byte(fmt.Sprintf("%d\t%s\t%s\n", id, title, label)))
+}
+
+func writeRel(out io.Writer, origin int64, dest int64, rel string) {
+	out.Write([]byte(fmt.Sprintf("%d\t%d\t%s\n", origin, dest, rel)))
 }
