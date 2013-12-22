@@ -63,7 +63,9 @@ func (page *Page) getLinks(text []byte) {
 
 				page.Categories = append(page.Categories, string(category))
 			} else {
-				page.Links = append(page.Links, string(linkBody))
+				if isTitle(linkBody) {
+					page.Links = append(page.Links, string(linkBody))
+				}
 			}
 
 			text = text[endIndex+len(endTag):]
