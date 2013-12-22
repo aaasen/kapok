@@ -4,11 +4,9 @@ package parse
 import (
 	"bufio"
 	"bytes"
-	"encoding/xml"
 	"io"
 	"log"
 	"regexp"
-	"strings"
 )
 
 var pageStartRegex = regexp.MustCompile(".*<page>.*")
@@ -22,24 +20,13 @@ var categoryRegex = regexp.MustCompile("\\[\\[Category:(.+?)\\]\\]")
 func Parse(reader io.Reader, pages chan<- *Page) {
 	rawPages := make(chan []byte)
 	nonRedirectPages := make(chan []byte)
-	somePages := make(chan *Page)
 
 	go GetRawPages(reader, rawPages)
 	go FilterRedirects(rawPages, nonRedirectPages)
-	go GetPages(nonRedirectPages, somePages)
-	go GetLinks(somePages, pages)
+	go GetPages(nonRedirectPages, pages)
 }
 
-// CategorizedParse is just like Parse, except that it also categorizes pages.
-func CategorizedParse(reader io.Reader, out chan<- *Page) {
-	pages := make(chan *Page)
-
-	go GetCategories(pages, out)
-
-	Parse(reader, pages)
-}
-
-// GetChunks reads an XML file line by line and dumps each line to its output channel.
+// GetRawPages creates full pages from a reader that can then be parsed with an XML parser.
 func GetRawPages(rawReader io.Reader, pages chan<- []byte) {
 	reader := bufio.NewReader(rawReader)
 
@@ -110,63 +97,11 @@ func GetPages(rawPages <-chan []byte, pages chan<- *Page) {
 				return
 			}
 
-			pageStruct := &Page{}
+			page, err := NewPageFromXML(rawPage)
 
-			err := xml.Unmarshal(rawPage, pageStruct)
-
-			if err != nil {
-
-			} else {
-				pages <- pageStruct
+			if err == nil {
+				pages <- page
 			}
-		}
-	}
-}
-
-// GetLinks extracts all Wikipedia links found in pages.
-// Only links in the form [[target]] are extracted.
-func GetLinks(pages <-chan *Page, linkedPages chan<- *Page) {
-	for {
-		select {
-		case page, ok := <-pages:
-			if !ok {
-				close(linkedPages)
-				return
-			}
-
-			links := linkRegex.FindAllStringSubmatch(page.Revision.Text, -1)
-
-			for _, link := range links {
-				page.Links = append(page.Links, link[1])
-			}
-
-			linkedPages <- page
-		}
-	}
-}
-
-// GetCategories extracts categories out of each Wikipedia page
-// and adds them to the given categories object.
-// Only links in the form [[Category:target]] are extracted.
-func GetCategories(pages <-chan *Page, categorizedPages chan<- *Page) {
-	for {
-		select {
-		case page, ok := <-pages:
-			if !ok {
-				close(categorizedPages)
-				return
-			}
-
-			rawCats := categoryRegex.FindAllStringSubmatch(page.Revision.Text, -1)
-			cats := make([]string, len(rawCats))
-
-			for i, rawCat := range rawCats {
-				cats[i] = strings.Trim(rawCat[1], " \t|")
-			}
-
-			page.Categories = cats
-
-			categorizedPages <- page
 		}
 	}
 }

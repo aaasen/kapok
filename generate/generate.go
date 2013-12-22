@@ -16,7 +16,7 @@ func Generate(in io.Reader, nodes io.Writer, rels io.Writer, maxPages int) {
 	gen := NewCSVGenerator()
 
 	pages := make(chan *parse.Page)
-	go parse.CategorizedParse(in, pages)
+	go parse.Parse(in, pages)
 
 	start := time.Now()
 	numPages := 0
