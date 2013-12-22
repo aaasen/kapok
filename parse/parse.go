@@ -3,6 +3,7 @@ package parse
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/xml"
 	"io"
 	"log"
@@ -19,13 +20,11 @@ var categoryRegex = regexp.MustCompile("\\[\\[Category:(.+?)\\]\\]")
 // Parse parses given reader as XML and dumps Page objects with links
 // into its output channel.
 func Parse(reader io.Reader, pages chan<- *Page) {
-	chunks := make(chan []byte)
 	rawPages := make(chan []byte)
 	nonRedirectPages := make(chan []byte)
 	somePages := make(chan *Page)
 
-	go GetChunks(reader, chunks)
-	go GetRawPages(chunks, rawPages)
+	go GetRawPages(reader, rawPages)
 	go FilterRedirects(rawPages, nonRedirectPages)
 	go GetPages(nonRedirectPages, somePages)
 	go GetLinks(somePages, pages)
@@ -41,57 +40,47 @@ func CategorizedParse(reader io.Reader, out chan<- *Page) {
 }
 
 // GetChunks reads an XML file line by line and dumps each line to its output channel.
-func GetChunks(reader io.Reader, chunks chan<- []byte) {
-	scanner := bufio.NewScanner(reader)
+func GetRawPages(rawReader io.Reader, pages chan<- []byte) {
+	reader := bufio.NewReader(rawReader)
+
+	buffer := make([]byte, 0)
+	inPage := false
 
 	eof := false
 
 	for !eof {
-		if scanner.Scan() {
-			chunks <- scanner.Bytes()
-		} else {
-			if err := scanner.Err(); err != nil {
-				log.Println(err.Error() + " skipping line")
-			} else {
+		text, err := reader.ReadBytes('>')
+
+		if err != nil {
+			if err == io.EOF {
 				eof = true
-			}
-		}
-	}
-
-	close(chunks)
-}
-
-// GetRawPages combines individual line elements into complete XML pages
-// so that they can be processed by a standard in-memory XML parser.
-func GetRawPages(chunks <-chan []byte, pages chan<- []byte) {
-	page := []byte("<page>")
-	inPage := false
-
-	for {
-		select {
-		case chunk, ok := <-chunks:
-			if !ok {
-				close(pages)
-				return
-			}
-
-			if pageStartRegex.Match(chunk) {
-				inPage = true
-			} else if pageEndRegex.Match(chunk) {
-				if inPage {
-					page = append(page, []byte("</page>")...)
-					pages <- page
-					page = []byte("<page>")
-				}
-
-				inPage = false
 			} else {
-				if inPage {
-					page = append(page, chunk...)
-				}
+				log.Println(err.Error() + " skipping line")
 			}
 		}
+
+		startTag := []byte("<page>")
+		startIndex := bytes.Index(text, startTag)
+
+		endTag := []byte("</page>")
+		endIndex := bytes.Index(text, endTag)
+
+		if startIndex != -1 {
+			inPage = true
+			buffer = text[startIndex:]
+		} else if endIndex != -1 {
+			inPage = false
+			buffer = append(buffer, text[:endIndex+len(endTag)]...)
+
+			pages <- buffer
+
+			buffer = make([]byte, 0)
+		} else if inPage {
+			buffer = append(buffer, text...)
+		}
 	}
+
+	close(pages)
 }
 
 // FilterRedirects discards all pages that redirect to another page.
