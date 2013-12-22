@@ -9,8 +9,8 @@ import (
 	"github.com/aaasen/kapok/generate"
 )
 
-var cpuprofile = true
-var memprofile = true
+var cpuprofile = false
+var memprofile = false
 
 func main() {
 	if len(os.Args) <= 1 {
@@ -35,7 +35,7 @@ func main() {
 			return
 		}
 
-		err := generateByPath(os.Args[2], os.Args[3], os.Args[4], 10000)
+		err := generateByPath(os.Args[2], os.Args[3], os.Args[4], -1)
 
 		if err != nil {
 			fmt.Println(err)
