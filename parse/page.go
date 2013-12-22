@@ -63,11 +63,7 @@ func (page *Page) getLinks(text []byte) {
 
 				page.Categories = append(page.Categories, string(category))
 			} else {
-				specialIndex := bytes.IndexAny(linkBody, ":#{}/")
-
-				if specialIndex == -1 {
-					page.Links = append(page.Links, string(linkBody))
-				}
+				page.Links = append(page.Links, string(linkBody))
 			}
 
 			text = text[endIndex+len(endTag):]
@@ -97,6 +93,12 @@ func (page *Page) getTitle(text []byte) error {
 	}
 
 	return nil
+}
+
+func isTitle(title []byte) bool {
+	specialIndex := bytes.IndexAny(title, ":#{}/")
+
+	return specialIndex == -1
 }
 
 // removeEscapedRegions removes all markup in between the <nowiki> tags.
