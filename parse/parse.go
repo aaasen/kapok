@@ -6,10 +6,7 @@ import (
 	"bytes"
 	"io"
 	"log"
-	"regexp"
 )
-
-var redirectRegex = regexp.MustCompile("#REDIRECT[ \t].*?\\[\\[.*?\\]\\]")
 
 type Parser struct {
 	BytesProcessed int64
@@ -25,11 +22,9 @@ func NewParser() *Parser {
 // into its output channel.
 func (parser *Parser) Parse(reader io.Reader, pages chan<- *Page) {
 	rawPages := make(chan []byte)
-	nonRedirectPages := make(chan []byte)
 
 	go parser.getRawPages(reader, rawPages)
-	go parser.filterRedirects(rawPages, nonRedirectPages)
-	go parser.getPages(nonRedirectPages, pages)
+	go parser.getPages(rawPages, pages)
 }
 
 // GetRawPages creates full pages from a reader that can then be parsed with an XML parser.
@@ -66,7 +61,9 @@ func (parser *Parser) getRawPages(rawReader io.Reader, pages chan<- []byte) {
 			inPage = false
 			buffer = append(buffer, text[:endIndex+len(endTag)]...)
 
-			pages <- buffer
+			if bytes.Index(buffer, []byte("#REDIRECT")) == -1 {
+				pages <- buffer
+			}
 
 			buffer = make([]byte, 0)
 		} else if inPage {
@@ -75,23 +72,6 @@ func (parser *Parser) getRawPages(rawReader io.Reader, pages chan<- []byte) {
 	}
 
 	close(pages)
-}
-
-// FilterRedirects discards all pages that redirect to another page.
-func (parser *Parser) filterRedirects(rawPages <-chan []byte, nonRedirectPages chan<- []byte) {
-	for {
-		select {
-		case rawPage, ok := <-rawPages:
-			if !ok {
-				close(nonRedirectPages)
-				return
-			}
-
-			if redirectRegex.Find(rawPage) == nil {
-				nonRedirectPages <- rawPage
-			}
-		}
-	}
 }
 
 // GetPages parses a complete XML page into a page object.
