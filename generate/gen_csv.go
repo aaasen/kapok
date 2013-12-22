@@ -77,7 +77,7 @@ func (self *CSVGenerator) GeneratePage(page *parse.Page,
 	}
 }
 
-var invalidCharacterRegex = regexp.MustCompile("[\t\"\\']")
+var invalidCharacterRegex = regexp.MustCompile(`[\t\n\"]`)
 
 func writeNode(out io.Writer, id int64, title string, label string) {
 	title = invalidCharacterRegex.ReplaceAllString(title, "")
