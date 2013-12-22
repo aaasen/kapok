@@ -15,8 +15,9 @@ func Generate(in io.Reader, nodes io.Writer, rels io.Writer, maxPages int) {
 
 	gen := NewCSVGenerator()
 
+	parser := parse.NewParser()
 	pages := make(chan *parse.Page)
-	go parse.Parse(in, pages)
+	parser.Parse(in, pages)
 
 	start := time.Now()
 	numPages := 0
@@ -35,9 +36,9 @@ func Generate(in io.Reader, nodes io.Writer, rels io.Writer, maxPages int) {
 
 			gen.GeneratePage(page, nodes, rels)
 
-			if numPages%100 == 0 {
-				log.Printf("processed %v pages in %v (%.2f pages/sec)",
-					numPages, time.Since(start), float64(numPages)/time.Since(start).Seconds())
+			if numPages%1000 == 0 {
+				log.Printf("processed %v pages (%dM) in %v (%.2f pages/sec)",
+					numPages, parser.BytesProcessed/1048576, time.Since(start), float64(numPages)/time.Since(start).Seconds())
 			}
 
 			page = nil

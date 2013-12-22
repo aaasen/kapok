@@ -83,7 +83,7 @@ func (page *Page) getTitle(text []byte) error {
 	if startIndex != -1 && endIndex != -1 {
 		title := text[startIndex+len(startTag) : endIndex]
 
-		if len(title) < 1 {
+		if len(title) < 1 || !isTitle(title) {
 			return ErrTitleNotFound
 		}
 

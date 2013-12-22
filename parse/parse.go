@@ -9,25 +9,31 @@ import (
 	"regexp"
 )
 
-var pageStartRegex = regexp.MustCompile(".*<page>.*")
-var pageEndRegex = regexp.MustCompile(".*</page>.*")
 var redirectRegex = regexp.MustCompile("#REDIRECT[ \t].*?\\[\\[.*?\\]\\]")
-var linkRegex = regexp.MustCompile("\\[\\[([^|]+?)\\]\\]")
-var categoryRegex = regexp.MustCompile("\\[\\[Category:(.+?)\\]\\]")
+
+type Parser struct {
+	BytesProcessed int64
+}
+
+func NewParser() *Parser {
+	return &Parser{
+		0,
+	}
+}
 
 // Parse parses given reader as XML and dumps Page objects with links
 // into its output channel.
-func Parse(reader io.Reader, pages chan<- *Page) {
+func (parser *Parser) Parse(reader io.Reader, pages chan<- *Page) {
 	rawPages := make(chan []byte)
 	nonRedirectPages := make(chan []byte)
 
-	go GetRawPages(reader, rawPages)
-	go FilterRedirects(rawPages, nonRedirectPages)
-	go GetPages(nonRedirectPages, pages)
+	go parser.getRawPages(reader, rawPages)
+	go parser.filterRedirects(rawPages, nonRedirectPages)
+	go parser.getPages(nonRedirectPages, pages)
 }
 
 // GetRawPages creates full pages from a reader that can then be parsed with an XML parser.
-func GetRawPages(rawReader io.Reader, pages chan<- []byte) {
+func (parser *Parser) getRawPages(rawReader io.Reader, pages chan<- []byte) {
 	reader := bufio.NewReader(rawReader)
 
 	buffer := make([]byte, 0)
@@ -37,6 +43,7 @@ func GetRawPages(rawReader io.Reader, pages chan<- []byte) {
 
 	for !eof {
 		text, err := reader.ReadBytes('>')
+		parser.BytesProcessed += int64(len(text))
 
 		if err != nil {
 			if err == io.EOF {
@@ -71,7 +78,7 @@ func GetRawPages(rawReader io.Reader, pages chan<- []byte) {
 }
 
 // FilterRedirects discards all pages that redirect to another page.
-func FilterRedirects(rawPages <-chan []byte, nonRedirectPages chan<- []byte) {
+func (parser *Parser) filterRedirects(rawPages <-chan []byte, nonRedirectPages chan<- []byte) {
 	for {
 		select {
 		case rawPage, ok := <-rawPages:
@@ -88,7 +95,7 @@ func FilterRedirects(rawPages <-chan []byte, nonRedirectPages chan<- []byte) {
 }
 
 // GetPages parses a complete XML page into a page object.
-func GetPages(rawPages <-chan []byte, pages chan<- *Page) {
+func (parser *Parser) getPages(rawPages <-chan []byte, pages chan<- *Page) {
 	for {
 		select {
 		case rawPage, ok := <-rawPages:
