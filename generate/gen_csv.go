@@ -1,9 +1,9 @@
 package generate
 
 import (
+	"bytes"
 	"fmt"
 	"io"
-	"regexp"
 
 	"github.com/aaasen/kapok/parse"
 )
@@ -77,14 +77,25 @@ func (self *CSVGenerator) GeneratePage(page *parse.Page,
 	}
 }
 
-var invalidCharacterRegex = regexp.MustCompile(`[\t\n\"]`)
-
 func writeNode(out io.Writer, id int64, title string, label string) {
-	title = invalidCharacterRegex.ReplaceAllString(title, "")
+	title = string(removeAllBytes([]byte(title), []byte(`[\t\n\"]`)))
 
 	out.Write([]byte(fmt.Sprintf("%d\t%s\t%s\n", id, title, label)))
 }
 
 func writeRel(out io.Writer, origin int64, dest int64, rel string) {
 	out.Write([]byte(fmt.Sprintf("%d\t%d\t%s\n", origin, dest, rel)))
+}
+
+func removeAllBytes(source []byte, targets []byte) []byte {
+	clean := make([]byte, len(source))
+	cleanBytes := 0
+
+	for _, b := range source {
+		if bytes.IndexByte(targets, b) == -1 {
+			clean[cleanBytes] = b
+		}
+	}
+
+	return clean[:cleanBytes+1]
 }
