@@ -6,22 +6,21 @@ import (
 )
 
 // Page is a representation of a Wikipedia page with only the necessary fields.
-// A Wikipedia page can be unmarshalled into a page just fine.
 type Page struct {
-	Title      string    `xml:"title"`
-	Revision   *Revision `xml:"revision"`
+	Title      string
 	Links      []string
 	Categories []string
-}
-
-func (self *Page) String() string {
-	return self.Title
 }
 
 var (
 	ErrTitleNotFound = errors.New("error parsing page from xml: title not found")
 )
 
+func (self *Page) String() string {
+	return self.Title
+}
+
+// NewPageFromXML creates a Page object from XML.
 func NewPageFromXML(text []byte) (*Page, error) {
 	page := &Page{}
 
@@ -36,6 +35,9 @@ func NewPageFromXML(text []byte) (*Page, error) {
 	return page, nil
 }
 
+// getLinks populates a Page's Links and Categories fields by parsing the given XML.
+// It will only take into account internal links, piped links, and categories.
+// See http://www.mediawiki.org/wiki/Help:Links for the syntax of these links.
 func (page *Page) getLinks(text []byte) {
 	linksLeft := true
 
@@ -75,6 +77,8 @@ func (page *Page) getLinks(text []byte) {
 	}
 }
 
+// getTitle parses the title from an XML representation of a Wikipedia page.
+// In the event of an error or malformed XML, it will return ErrTitleNotFound.
 func (page *Page) getTitle(text []byte) error {
 	startTag := []byte("<title>")
 	startIndex := bytes.Index(text, startTag)
@@ -97,6 +101,10 @@ func (page *Page) getTitle(text []byte) error {
 	return nil
 }
 
+// isTitle returns whether or not the given byte array looks like a valid
+// title for a Wikipedia article.s
+// It is based off of http://www.mediawiki.org/wiki/Help:Links
+// and tries to only accept internal links.
 func isTitle(title []byte) bool {
 	specialIndex := bytes.IndexAny(title, ":#{}/")
 
@@ -107,10 +115,4 @@ func isTitle(title []byte) bool {
 // See http://www.mediawiki.org/wiki/Help:Formatting
 func removeEscapedRegions(page []byte) []byte {
 	return page
-}
-
-// Revision usually contains information about the user and time of the revision.
-// Since Kapok is focused only on the latest version of Wikipedia, these fields are ignored.
-type Revision struct {
-	Text string `xml:"text"`
 }

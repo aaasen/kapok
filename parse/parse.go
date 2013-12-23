@@ -1,5 +1,6 @@
-// An ad-hoc parser for Wikipedia's 45GB (and growing) XML database.
 package parse
+
+// An ad-hoc parser for Wikipedia's 40GB (and growing) XML database.
 
 import (
 	"bufio"
@@ -18,8 +19,12 @@ func NewParser() *Parser {
 	}
 }
 
-// Parse parses given reader as XML and dumps Page objects with links
-// into its output channel.
+// Parse parses given reader as XML and dumps Page objects into the given channel.
+// Parse will fill the Page's Title, Links, and Categories.
+//
+// When the reader is empty, Parse will close its output channel.
+//
+// Parse will throw away malformed input instead of exiting and reporting it.
 func (parser *Parser) Parse(reader io.Reader, pages chan<- *Page) {
 	rawPages := make(chan []byte)
 
@@ -27,7 +32,7 @@ func (parser *Parser) Parse(reader io.Reader, pages chan<- *Page) {
 	go parser.getPages(rawPages, pages)
 }
 
-// GetRawPages creates full pages from a reader that can then be parsed with an XML parser.
+// getRawPages creates full pages from a reader that can then be parsed with an XML parser.
 func (parser *Parser) getRawPages(rawReader io.Reader, pages chan<- []byte) {
 	reader := bufio.NewReader(rawReader)
 
