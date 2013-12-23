@@ -2,7 +2,7 @@
 
 A Knowledge Graph of Wikipedia.
 
-![](https://raw.github.com/aaasen/kapok/master/demo/ayn_rand.png)
+![](https://raw.github.com/aaasen/kapok/master/assets/ayn_rand.png)
 
 A graph of how Ayn Rand relates to other historical figures.
 Orange nodes represent categories while purple nodes represent articles.
